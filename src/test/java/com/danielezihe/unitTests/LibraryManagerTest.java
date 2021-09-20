@@ -1,10 +1,13 @@
 package com.danielezihe.unitTests;
 
+
+import com.danielezihe.LibraryManager;
 import com.danielezihe.hibernate.entity.Book;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.xml.DOMConfigurator;
+import org.junit.jupiter.api.*;
 
 /**
  * @author EZIHE S. DANIEL
@@ -12,11 +15,18 @@ import org.junit.jupiter.api.Test;
  */
 public class LibraryManagerTest {
     private LibraryManager libraryManager;
-    private Main mainClass;
+
+    public static final Logger logger = LogManager.getLogger(LibraryManagerTest.class);
+
+    static {
+        // Log4j
+        PropertyConfigurator.configure("./src/main/log4j.properties");
+    }
 
     @BeforeEach
     void setUp() {
         libraryManager = new LibraryManager();
+        populateBooksDb();
     }
 
     @Test
@@ -25,19 +35,24 @@ public class LibraryManagerTest {
         String requestedBookId = "SN011";
         String requestedBookTitle = "Clean Code";
 
-        Book book = library.giveOutBook(requestedBookId, "Daniel");
+        Book book = libraryManager.getBook(requestedBookId);
+        logger.info(book);
 
         Assertions.assertEquals(requestedBookTitle, book.getTitle());
     }
 
+    @Test
+    @DisplayName("Checks if Library Manager returns 'Book does not exist' when user trys requesting an Invalid Book")
+    void shouldReturnBookDoesntExistWhenRequestingInvalidBook() {
+        String requestedBookId = "SN500";
 
-    // UTILITIES
-    private void populateStudentsDb() {
-        mainClass.createStudent(3, "Ezihe", 23);
-        mainClass.createStudent(4, "Daniel", 25);
+        var response = libraryManager.getBook(requestedBookId);
+
+        Assertions.assertEquals("Book does not exist", response);
     }
 
+    // UTILITIES
     private void populateBooksDb() {
-        libraryManager.createBook("SN011", "Clean code", "Robert C. Martin", 3);
+        libraryManager.createBook("SN011", "Clean Code", "Robert C. Martin", 3);
     }
 }
